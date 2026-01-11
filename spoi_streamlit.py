@@ -286,7 +286,7 @@ with tab3:
         
         st.markdown("---")
         
-         st.subheader(" Kumulativni Cost")
+        st.subheader(" Kumulativni Cost")
         fig, ax = plt.subplots(figsize=(14, 5))
         cum_cost_i = np.cumsum(r['init_costs'][sidx])
         cum_cost_o = np.cumsum(r['opt_costs'][sidx])
