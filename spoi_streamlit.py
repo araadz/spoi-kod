@@ -268,48 +268,42 @@ with tab3:
         
         
         st.markdown("---")
-        
-        st.subheader("Pick-weighted distribucija po vertikalnim nivoima")
+        # Pick-weighted distribucija po V i H pozicijama
+        st.subheader("Pick-weighted distribucija po V i H pozicijama")
 
         df = r['df']
         df_pos = r['df_positions']
         opt = r['opt_assign']
-
         izlaz = df['izlaz'].values
         total_izlaz = izlaz.sum()
-        
-        # V nivoi prije i poslije
         init_V = df['V'].values
+        init_H = df['H'].values
         opt_V = np.array([df_pos.iloc[opt[i]]['V'] for i in range(len(df))])
-
+        opt_H = np.array([df_pos.iloc[opt[i]]['H'] for i in range(len(df))])
         V_levels = sorted(df['V'].unique())
-        
-        init_share = [
-            izlaz[init_V == v].sum() / total_izlaz
-            for v in V_levels
-        ]
-        
-        opt_share = [
-            izlaz[opt_V == v].sum() / total_izlaz
-            for v in V_levels
-        ]
-        
-        fig, ax = plt.subplots(figsize=(8, 5))
-        ax.plot(V_levels, init_share, marker='o', label='Početno')
-        ax.plot(V_levels, opt_share, marker='o', label='Optimizirano')
-        
-        ax.set_xlabel("Vertikalni nivo (V)")
-        ax.set_ylabel("Udio pickova")
-        ax.set_title("Pick-weighted distribucija pickova po V nivoima")
-        ax.legend()
-        ax.grid(alpha=0.3)
-        
+        H_levels = sorted(df['H'].unique())
+        init_V_share = [izlaz[init_V == v].sum() / total_izlaz for v in V_levels]
+        opt_V_share  = [izlaz[opt_V  == v].sum() / total_izlaz for v in V_levels]
+        init_H_share = [izlaz[init_H == h].sum() / total_izlaz for h in H_levels]
+        opt_H_share  = [izlaz[opt_H  == h].sum() / total_izlaz for h in H_levels]
+        fig, ax = plt.subplots(1, 2, figsize=(14, 5), sharey=True)
+        ax[0].plot(V_levels, init_V_share, marker='o', label='Početno')
+        ax[0].plot(V_levels, opt_V_share, marker='o', label='Optimizirano')
+        ax[0].set_xlabel("Vertikalni nivo (V)")
+        ax[0].set_ylabel("Udio pickova")
+        ax[0].set_title("Distribucija pickova po V nivoima")
+        ax[0].grid(alpha=0.3)
+        ax[0].legend()
+        ax[1].plot(H_levels, init_H_share, marker='o', label='Početno')
+        ax[1].plot(H_levels, opt_H_share, marker='o', label='Optimizirano')
+        ax[1].set_xlabel("Horizontalna pozicija (H)")
+        ax[1].set_title("Distribucija pickova po H zonama")
+        ax[1].grid(alpha=0.3)
+        ax[1].legend()
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
 
-
-        
         st.markdown("---")
         
         
