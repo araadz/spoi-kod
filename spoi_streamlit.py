@@ -341,6 +341,56 @@ with tab3:
         st.pyplot(fig)
         plt.close()
 
+        st.markdown("---")
+        
+        st.subheader("CDF Simulation Cost (po picku)")
+        np.random.seed(42)
+        df=r['df']
+        izlaz=df['izlaz'].values
+        total_izlaz=izlaz.sum()
+        probs=izlaz/total_izlaz if total_izlaz>0 else np.ones(len(df))/len(df)
+        init_costs=r['init_costs']
+        opt_costs=r['opt_costs']
+        picked=np.random.choice(len(df),size=r['params']['N_PICKS'],p=probs)
+        init_pick_costs=np.sort(init_costs[picked])
+        opt_pick_costs=np.sort(opt_costs[picked])
+        cdf=np.linspace(0,1,len(init_pick_costs))
+        fig,ax=plt.subplots(figsize=(8,5))
+        ax.plot(init_pick_costs,cdf,label='Početno')
+        ax.plot(opt_pick_costs,cdf,label='Optimizirano')
+        ax.set_xlabel("Cost po picku")
+        ax.set_ylabel("CDF")
+        ax.set_title("CDF distribucija simulation cost-a")
+        ax.legend()
+        ax.grid(alpha=0.3)
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.close()
+
+        st.markdown("---")
+
+        st.subheader("Potražnja vs Cost pozicije (Before / After)")
+        df=r['df']
+        izlaz=df['izlaz'].values
+        init_cost=r['init_costs']
+        opt_cost=r['opt_costs']
+        fig,ax=plt.subplots(figsize=(8,5))
+        ax.scatter(izlaz,init_cost,alpha=0.6,label='Početno')
+        ax.scatter(izlaz,opt_cost,alpha=0.6,label='Optimizirano')
+        ax.set_xlabel("Potražnja (izlaz)")
+        ax.set_ylabel("Cost pozicije (C)")
+        ax.set_title("Potražnja vs Cost pozicije")
+        ax.legend()
+        ax.grid(alpha=0.3)
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.close()
+
+
+        st.markdown("---")
+
+
+
 
 # FOOTER
 
