@@ -52,7 +52,7 @@ with st.sidebar:
     N_PICKS = st.number_input("Pickova", 100, 2000, 500, 100)
     
     st.markdown("---")
-    st.markdown("Formule za Cost i Utility matricu")
+    st.markdown("Formule za Ccost (C), i Utility matricu (U)")
     st.latex(r"C = \alpha H + \beta \max(0,V-2) + \gamma(4-E)")
     st.latex(r"U = e^{-C/\tau} \cdot (1 + \lambda \frac{d}{d_{max}})")
 
@@ -286,33 +286,20 @@ with tab3:
         
         st.markdown("---")
         
-        # 3 & 4. H i V
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            st.subheader(" H po Artiklima")
-            fig, ax = plt.subplots(figsize=(7, 4))
-            h_i = np.array([df.iloc[i]['H'] for i in sidx])
-            h_o = np.array([df_pos.iloc[opt[i]]['H'] for i in sidx])
-            ax.plot(xi, h_i, c=C_I, label='Početno')
-            ax.plot(xi, h_o, c=C_O, label='Optimizirano')
-            ax.legend(); ax.grid(alpha=0.3); ax.set_ylim(0, 16)
-            plt.tight_layout()
-            st.pyplot(fig)
-            plt.close()
-        
-        with col2:
-            st.subheader(" V po Artiklima")
-            fig, ax = plt.subplots(figsize=(7, 4))
-            v_i = np.array([df.iloc[i]['V'] for i in sidx])
-            v_o = np.array([df_pos.iloc[opt[i]]['V'] for i in sidx])
-            ax.plot(xi, v_i, c=C_I, label='Početno')
-            ax.plot(xi, v_o, c=C_O, label='Optimizirano')
-            ax.axhline(2, c='gold', ls='--', lw=2, label='Zlatna zona')
-            ax.legend(); ax.grid(alpha=0.3); ax.set_ylim(0, 6)
-            plt.tight_layout()
-            st.pyplot(fig)
-            plt.close()
+         st.subheader(" Kumulativni Cost")
+        fig, ax = plt.subplots(figsize=(14, 5))
+        cum_cost_i = np.cumsum(r['init_costs'][sidx])
+        cum_cost_o = np.cumsum(r['opt_costs'][sidx])
+        ax.plot(xi, cum_cost_i, c=C_I, label=f'Početno ({cum_cost_i[-1]:.0f})')
+        ax.plot(xi, cum_cost_o, c=C_O, label=f'Optim. ({cum_cost_o[-1]:.0f})')
+        ax.fill_between(xi, cum_cost_o, cum_cost_i, alpha=0.3, color=C_O)
+        ax.set_xlabel('Artikli (po potražnji)')
+        ax.set_ylabel('Kumulativni Cost')
+        ax.legend()
+        ax.grid(alpha=0.3)
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.close()
         
         st.markdown("---")
         
@@ -327,6 +314,26 @@ with tab3:
         ax.fill_between(xi, cum_i, cum_o, alpha=0.3, color=C_O)
         ax.set_xlabel('Artikli'); ax.set_ylabel('Kumulativni Utility')
         ax.legend(); ax.grid(alpha=0.3)
+        plt.tight_layout()
+        st.pyplot(fig)
+        plt.close()
+
+
+        st.markdown("---")
+
+
+        st.subheader(" Poboljšanje Utility po Artiklima (%)")
+        fig, ax = plt.subplots(figsize=(14, 5))
+        improvement_pct = (r['opt_utils'][sidx] - r['init_utils'][sidx]) / np.maximum(r['init_utils'][sidx], 0.001) * 100
+        ax.plot(xi, improvement_pct, c=C_O, lw=1.5)
+        ax.fill_between(xi, 0, improvement_pct, where=improvement_pct > 0, alpha=0.4, color=C_O, label='Poboljšanje')
+        ax.fill_between(xi, 0, improvement_pct, where=improvement_pct < 0, alpha=0.4, color=C_I, label='Pogoršanje')
+        ax.axhline(0, c='black', lw=1)
+        ax.axhline(np.mean(improvement_pct), c=C_A, ls='--', lw=2, label=f'Prosjek: {np.mean(improvement_pct):.1f}%')
+        ax.set_xlabel('Artikli (po potražnji)')
+        ax.set_ylabel('Poboljšanje (%)')
+        ax.legend()
+        ax.grid(alpha=0.3)
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
