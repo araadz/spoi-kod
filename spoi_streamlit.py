@@ -274,7 +274,7 @@ with tab3:
 
         init_costs = r['init_costs'][sidx]
         opt_costs  = r['opt_costs'][sidx]
-        weights    = r['weights'][sidx]
+        weights = np.ones_like(init_costs)
         weights = weights / np.sum(weights)
         cum_w_init = np.cumsum(init_costs * weights)
         cum_w_opt  = np.cumsum(opt_costs  * weights)
