@@ -211,6 +211,30 @@ with tab2:
         st.dataframe(pd.DataFrame(top10), use_container_width=True, hide_index=True)
         
         st.markdown("---")
+
+        st.subheader("Sva premještanja artikala")
+
+        df=r['df']
+        df_pos=r['df_positions']
+        opt=r['opt_assign']
+        
+        all_moves=[]
+        for i in range(len(df)):
+            j=opt[i]
+            if j!=i:
+                naziv=df.iloc[i].get('Naziv artikla',f'#{i}')
+                if pd.isna(naziv): naziv=f'#{i}'
+                all_moves.append({
+                    'Naziv':str(naziv)[:25],
+                    'Potražnja':int(df.iloc[i]['izlaz']),
+                    'H':f"{int(df.iloc[i]['H'])} → {int(df_pos.iloc[j]['H'])}",
+                    'V':f"{int(df.iloc[i]['V'])} → {int(df_pos.iloc[j]['V'])}",
+                    'E':f"{int(df.iloc[i]['E'])} → {int(df_pos.iloc[j]['E'])}"
+                })
+        
+        st.dataframe(pd.DataFrame(all_moves),use_container_width=True,hide_index=True)
+
+        st.markdown("---")
         
         # Download
         st.subheader(" Download")
@@ -369,25 +393,7 @@ with tab3:
 
         st.markdown("---")
 
-        st.subheader("Potražnja vs Cost pozicije (Before / After)")
-        df=r['df']
-        izlaz=df['izlaz'].values
-        init_cost=r['init_costs']
-        opt_cost=r['opt_costs']
-        fig,ax=plt.subplots(figsize=(8,5))
-        ax.scatter(izlaz,init_cost,alpha=0.6,label='Početno')
-        ax.scatter(izlaz,opt_cost,alpha=0.6,label='Optimizirano')
-        ax.set_xlabel("Potražnja (izlaz)")
-        ax.set_ylabel("Cost pozicije (C)")
-        ax.set_title("Potražnja vs Cost pozicije")
-        ax.legend()
-        ax.grid(alpha=0.3)
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
-
-
-        st.markdown("---")
+        
 
 
 
