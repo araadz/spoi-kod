@@ -269,20 +269,26 @@ with tab3:
         
         st.markdown("---")
         
-        st.subheader(" Kumulativni Cost")
+        st.subheader("Weighted Kumulativni Cost")
         fig, ax = plt.subplots(figsize=(14, 5))
-        cum_cost_i = np.cumsum(r['init_costs'][sidx])
-        cum_cost_o = np.cumsum(r['opt_costs'][sidx])
-        ax.plot(xi, cum_cost_i, c=C_I, label=f'Početno ({cum_cost_i[-1]:.0f})')
-        ax.plot(xi, cum_cost_o, c=C_O, label=f'Optim. ({cum_cost_o[-1]:.0f})')
-        ax.fill_between(xi, cum_cost_o, cum_cost_i, alpha=0.3, color=C_O)
+
+        init_costs = r['init_costs'][sidx]
+        opt_costs  = r['opt_costs'][sidx]
+        weights    = r['weights'][sidx]
+        weights = weights / np.sum(weights)
+        cum_w_init = np.cumsum(init_costs * weights)
+        cum_w_opt  = np.cumsum(opt_costs  * weights)
+        ax.plot(xi, cum_w_init, c=C_I, label=f'Početno ({cum_w_init[-1]:.2f})')
+        ax.plot(xi, cum_w_opt,  c=C_O, label=f'Optim. ({cum_w_opt[-1]:.2f})')
+        ax.fill_between(xi, cum_w_opt, cum_w_init, alpha=0.3, color=C_O)
         ax.set_xlabel('Artikli (po potražnji)')
-        ax.set_ylabel('Kumulativni Cost')
+        ax.set_ylabel('Weighted kumulativni cost')
         ax.legend()
         ax.grid(alpha=0.3)
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
+
         
         st.markdown("---")
         
