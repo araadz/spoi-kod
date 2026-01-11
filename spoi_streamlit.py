@@ -2,13 +2,6 @@
 ================================================================================
 SPOI WAREHOUSE OPTIMIZATION - STREAMLIT APP
 ================================================================================
-Streamlit aplikacija koja koristi warehouse_model.py
-
-Potrebni fajlovi u istom folderu:
-- spoi_streamlit.py (ovaj fajl)
-- warehouse_model.py (model)
-- SPOI_DATA (1) new.xlsx (podaci)
-================================================================================
 """
 
 import streamlit as st
@@ -21,19 +14,18 @@ from datetime import datetime
 # Import modela
 import warehouse_model as model
 
-# ============================================================
+
 # PAGE CONFIG
-# ============================================================
 st.set_page_config(
-    page_title="SPOI Warehouse Optimization",
-    page_icon="🏭",
+    page_title="SPOI Optimizacija skladišnih pozicija",
+    page_icon="",
     layout="wide",
     initial_sidebar_state="expanded"
 )
 
-# ============================================================
+
 # CSS
-# ============================================================
+
 st.markdown("""
 <style>
     .main-header {font-size: 2.5rem; font-weight: bold; color: #1E3A8A; text-align: center;}
@@ -41,15 +33,11 @@ st.markdown("""
 </style>
 """, unsafe_allow_html=True)
 
-# ============================================================
 # HEADER
-# ============================================================
-st.markdown('<p class="main-header">🏭 SPOI Warehouse Optimization</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-header"> SPOI Warehouse Optimization</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Optimizacija rasporeda artikala korištenjem ILP solvera</p>', unsafe_allow_html=True)
 
-# ============================================================
 # SIDEBAR
-# ============================================================
 with st.sidebar:
     st.header("⚙️ Parametri")
     
@@ -73,25 +61,40 @@ params = {
     'TAU': TAU, 'DEMAND_MULTIPLIER': DEMAND_MULTIPLIER, 'N_PICKS': N_PICKS
 }
 
-# ============================================================
 # TABS
-# ============================================================
-tab1, tab2, tab3 = st.tabs(["📂 Učitaj & Optimiziraj", "📊 Rezultati", "📈 Grafici"])
+tab1, tab2, tab3 = st.tabs([" Upload & Optimiziraj", " Rezultati", " Grafici"])
+# TAB 1 - UPLOAD
 
-# ============================================================
-# TAB 1
-# ============================================================
 with tab1:
-    st.header("📂 Učitavanje Podataka")
+    st.header(" Upload Excel Fajla")
     
-    FILE_PATH = "SPOI_DATA (1) new.xlsx"
+    # Upute
+    with st.expander(" Upute za pripremu fajla", expanded=False):
+        st.markdown("""
+        ### Obavezne kolone:
+        | Kolona | Opis |
+        |--------|------|
+        | **H** | Horizontalna pozicija (1-15) |
+        | **V** | Vertikalni nivo (1-5) |
+        | **E** | Dubina u regalu (1-4) |
+        | **izlaz** | Potražnja (broj izuzimanja) |
+        
+        ### Opcionalno:
+        | Kolona | Opis |
+        |--------|------|
+        | **TEZINA_KAT** | Kategorija težine (1-8) |
+        """)
     
-    st.info(f"📁 Tražim fajl: **{FILE_PATH}**")
-    st.warning("⚠️ Stavi fajl u isti folder kao aplikaciju!")
+    # UPLOAD
+    uploaded_file = st.file_uploader(
+        " Odaberi Excel fajl (.xlsx)",
+        type=['xlsx', 'xls'],
+        help="Upload Excel sa kolonama: H, V, E, izlaz"
+    )
     
-    if st.button("📂 UČITAJ PODATKE", use_container_width=True):
+    if uploaded_file is not None:
         try:
-            df = pd.read_excel(FILE_PATH)
+            df = pd.read_excel(uploaded_file)
             
             # Validacija
             missing = [c for c in ['H', 'V', 'E', 'izlaz'] if c not in df.columns]
@@ -99,11 +102,11 @@ with tab1:
                 st.error(f"❌ Nedostaju kolone: {missing}")
                 st.stop()
             
-            # Pripremi podatke koristeći model
+            # Pripremi podatke
             df = model.prepare_data(df)
             n = len(df)
             
-            st.success(f"✅ Učitano **{n}** artikala")
+            st.success(f" Učitan file **{n}** artikala")
             
             col1, col2, col3, col4 = st.columns(4)
             col1.metric("H", f"{int(df['H'].min())} - {int(df['H'].max())}")
@@ -114,55 +117,51 @@ with tab1:
             st.session_state['df_raw'] = df
             st.session_state['data_loaded'] = True
             
-            with st.expander("👀 Pregled"):
+            with st.expander(" Pregled podataka"):
                 st.dataframe(df.head(15), use_container_width=True)
                 
-        except FileNotFoundError:
-            st.error(f"❌ **{FILE_PATH}** nije pronađen!")
         except Exception as e:
-            st.error(f"❌ Greška: {e}")
+            st.error(f" Greška: {e}")
     
     st.markdown("---")
-    st.header("🚀 Optimizacija")
+    st.header(" Optimizacija")
     
-    if st.button("🎯 OPTIMIZIRAJ", type="primary", use_container_width=True):
+    if st.button(" OPTIMIZIRAJ", type="primary", use_container_width=True):
         if 'data_loaded' not in st.session_state:
-            st.warning("⚠️ Prvo učitaj podatke!")
+            st.warning(" Prvo uploadaj Excel fajl!")
             st.stop()
         
         progress = st.progress(0)
         status = st.empty()
         
-        status.text("⏳ Pokrećem optimizaciju...")
+        status.text(" Pokretanje optimizacije")
         progress.progress(20)
         
-        # Pozovi model
         try:
             results = model.optimize(st.session_state['df_raw'], params)
             progress.progress(90)
             
-            # Spremi rezultate
             st.session_state['results'] = results
             st.session_state['optimized'] = True
             
             progress.progress(100)
-            status.text("✅ Završeno!")
+            status.text("Završeno!")
             
             st.balloons()
-            st.success(f"🎯 Poboljšanje: **+{results['improvement']:.2f}%**")
-            st.info("👉 Idi na tabove **Rezultati** i **Grafici**")
+            st.success(f"Poboljšanje: **+{results['improvement']:.2f}%**")
+            st.info(" Idi na tabove **Rezultati** i **Grafici**")
             
         except Exception as e:
-            st.error(f"❌ Greška: {e}")
+            st.error(f" Greška: {e}")
 
 # ============================================================
-# TAB 2
+# TAB 2 - REZULTATI
 # ============================================================
 with tab2:
-    st.header("📊 Rezultati")
+    st.header(" Rezultati")
     
     if 'optimized' not in st.session_state:
-        st.warning("⚠️ Prvo pokreni optimizaciju!")
+        st.warning(" Prvo uploadaj fajl i pokreni optimizaciju!")
     else:
         r = st.session_state['results']
         
@@ -176,7 +175,7 @@ with tab2:
         st.markdown("---")
         
         # Tabela
-        st.subheader("📋 Usporedba")
+        st.subheader(" Usporedba")
         comp = pd.DataFrame({
             'Metrika': ['Total Utility', 'Simulation Cost', 'Weighted H', 'Weighted V', 'Premješteno'],
             'Početno': [f"{r['init_utils'].sum():.2f}", f"{r['init_sim']:,.0f}", 
@@ -192,7 +191,7 @@ with tab2:
         st.markdown("---")
         
         # Top 10
-        st.subheader("📦 Top 10 Promjena")
+        st.subheader("Top 10 Promjena")
         df = r['df']
         df_pos = r['df_positions']
         opt = r['opt_assign']
@@ -214,7 +213,7 @@ with tab2:
         st.markdown("---")
         
         # Download
-        st.subheader("💾 Download")
+        st.subheader(" Download")
         
         output_df = model.create_output_dataframe(r)
         
@@ -225,7 +224,7 @@ with tab2:
         buffer.seek(0)
         
         st.download_button(
-            "📥 Download Excel",
+            " Download Excel",
             data=buffer,
             file_name=f"SPOI_optimized_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -233,13 +232,13 @@ with tab2:
         )
 
 # ============================================================
-# TAB 3
+# TAB 3 - GRAFICI
 # ============================================================
 with tab3:
-    st.header("📈 Grafici")
+    st.header("Grafici")
     
     if 'optimized' not in st.session_state:
-        st.warning("⚠️ Prvo pokreni optimizaciju!")
+        st.warning(" Prvo uploadaj fajl i pokreni optimizaciju!")
     else:
         r = st.session_state['results']
         df = r['df']
@@ -253,7 +252,7 @@ with tab3:
         xi = np.arange(n)
         
         # 1. Summary
-        st.subheader("1️⃣ Summary")
+        st.subheader(" Summary")
         fig, ax = plt.subplots(2, 2, figsize=(12, 8))
         for a, y, t, c in [(ax[0,0], [r['init_utils'].sum(), r['opt_utils'].sum()], 'Total Utility', C_O),
                           (ax[0,1], [r['init_sim'], r['opt_sim']], 'Simulation Cost', C_I),
@@ -270,7 +269,7 @@ with tab3:
         st.markdown("---")
         
         # 2. Utility
-        st.subheader("2️⃣ Utility po Artiklima")
+        st.subheader(" Utility po Artiklima")
         fig, ax = plt.subplots(figsize=(14, 5))
         ax.plot(xi, r['init_utils'][sidx], c=C_I, label='Početno')
         ax.plot(xi, r['opt_utils'][sidx], c=C_O, label='Optimizirano')
@@ -290,7 +289,7 @@ with tab3:
         col1, col2 = st.columns(2)
         
         with col1:
-            st.subheader("3️⃣ H po Artiklima")
+            st.subheader(" H po Artiklima")
             fig, ax = plt.subplots(figsize=(7, 4))
             h_i = np.array([df.iloc[i]['H'] for i in sidx])
             h_o = np.array([df_pos.iloc[opt[i]]['H'] for i in sidx])
@@ -302,7 +301,7 @@ with tab3:
             plt.close()
         
         with col2:
-            st.subheader("4️⃣ V po Artiklima")
+            st.subheader(" V po Artiklima")
             fig, ax = plt.subplots(figsize=(7, 4))
             v_i = np.array([df.iloc[i]['V'] for i in sidx])
             v_o = np.array([df_pos.iloc[opt[i]]['V'] for i in sidx])
@@ -316,28 +315,9 @@ with tab3:
         
         st.markdown("---")
         
-        # 5. Heatmap
-        st.subheader("5️⃣ Heatmap Potražnje")
-        fig, axes = plt.subplots(1, 2, figsize=(14, 5))
-        mh, mv = int(df['H'].max()), 5
-        hm_b, hm_a = np.zeros((mv, mh)), np.zeros((mv, mh))
-        for i in range(n):
-            hm_b[int(df.iloc[i]['V'])-1, int(df.iloc[i]['H'])-1] += izlaz[i]
-            j = opt[i]
-            hm_a[int(df_pos.iloc[j]['V'])-1, int(df_pos.iloc[j]['H'])-1] += izlaz[i]
-        axes[0].imshow(hm_b, cmap='Reds', aspect='auto')
-        axes[0].set_title('POČETNO', fontweight='bold')
-        axes[1].imshow(hm_a, cmap='Greens', aspect='auto')
-        axes[1].set_title('OPTIMIZIRANO', fontweight='bold')
-        for a in axes: a.set_xlabel('H'); a.set_ylabel('V')
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
-        
-        st.markdown("---")
         
         # 6. Cumulative
-        st.subheader("6️⃣ Kumulativni Utility")
+        st.subheader(" Kumulativni Utility")
         fig, ax = plt.subplots(figsize=(14, 5))
         cum_i = np.cumsum(r['init_utils'][sidx])
         cum_o = np.cumsum(r['opt_utils'][sidx])
@@ -350,8 +330,8 @@ with tab3:
         st.pyplot(fig)
         plt.close()
 
-# ============================================================
+
 # FOOTER
-# ============================================================
+
 st.markdown("---")
-st.markdown("<div style='text-align:center;color:#6B7280'>🏭 SPOI Warehouse Optimization</div>", unsafe_allow_html=True)
+st.markdown("<div style='text-align:center;color:#6B7280'> SPOI Optimizacija skladišnih pozicija</div>", unsafe_allow_html=True)
