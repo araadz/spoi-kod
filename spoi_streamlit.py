@@ -34,24 +34,25 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # HEADER
-st.markdown('<p class="main-header"> SPOI Warehouse Optimization</p>', unsafe_allow_html=True)
+st.markdown('<p class="main-header"> Optimizacija skladišta</p>', unsafe_allow_html=True)
 st.markdown('<p class="sub-header">Optimizacija rasporeda artikala korištenjem ILP solvera</p>', unsafe_allow_html=True)
 
 # SIDEBAR
 with st.sidebar:
-    st.header("⚙️ Parametri")
+    st.header(" Parametri")
     
-    COST_A = st.slider("α - Horizontalna (H)", 0.5, 5.0, 2.0, 0.5)
-    COST_B = st.slider("β - Vertikalna (V>2)", 1.0, 10.0, 5.0, 0.5)
+    COST_A = st.slider("α - Horizontalna pozicija modifikator (H)", 0.5, 5.0, 2.0, 0.5)
+    COST_B = st.slider("β - Vertikalna pozicija modifikator (V>2)", 1.0, 10.0, 5.0, 0.5)
     COST_C = st.slider("γ - Dubina (E)", 0.5, 5.0, 2.0, 0.5)
     
     st.markdown("---")
     
-    TAU = st.slider("τ - Temperatura", 2.0, 20.0, 8.0, 1.0)
-    DEMAND_MULTIPLIER = st.slider("λ - Multiplikator", 5, 30, 15, 1)
+    TAU = st.slider("τ - Faktor razlike pozicija", 2.0, 20.0, 8.0, 1.0)
+    DEMAND_MULTIPLIER = st.slider("λ - Multiplikator za potražnju", 5, 30, 15, 1)
     N_PICKS = st.number_input("Pickova", 100, 2000, 500, 100)
     
     st.markdown("---")
+    st.markdown("Formule za Cost i Utility matricu")
     st.latex(r"C = \alpha H + \beta \max(0,V-2) + \gamma(4-E)")
     st.latex(r"U = e^{-C/\tau} \cdot (1 + \lambda \frac{d}{d_{max}})")
 
@@ -226,7 +227,7 @@ with tab2:
         st.download_button(
             " Download Excel",
             data=buffer,
-            file_name=f"SPOI_optimized_{datetime.now().strftime('%Y%m%d_%H%M%S')}.xlsx",
+            file_name=f"Optimizovane_pozicije.xlsx",
             mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
             use_container_width=True
         )
