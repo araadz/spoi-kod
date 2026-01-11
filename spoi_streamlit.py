@@ -78,7 +78,7 @@ with tab1:
         | **H** | Horizontalna pozicija (1-15) |
         | **V** | Vertikalni nivo (1-5) |
         | **E** | Dubina u regalu (1-4) |
-        | **izlaz** | Potražnja (broj izuzimanja) |
+        | **izlaz** | Potražnja artikla |
         
         ### Opcionalno:
         | Kolona | Opis |
