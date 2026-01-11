@@ -49,7 +49,7 @@ with st.sidebar:
     
     TAU = st.slider("τ - Faktor razlike pozicija", 2.0, 20.0, 8.0, 1.0)
     DEMAND_MULTIPLIER = st.slider("λ - Multiplikator za potražnju", 5, 30, 15, 1)
-    N_PICKS = st.number_input("Pickova", 100, 2000, 500, 100)
+    N_PICKS = st.number_input("Pickova", 100, 2000, 1000, 100)
     
     st.markdown("---")
     st.markdown("Formule za Ccost (C), i Utility matricu (U)")
@@ -269,25 +269,45 @@ with tab3:
         
         st.markdown("---")
         
-        st.subheader("Weighted Kumulativni Cost")
-        fig, ax = plt.subplots(figsize=(14, 5))
+        st.subheader("Pick-weighted distribucija po vertikalnim nivoima")
 
-        init_costs = r['init_costs'][sidx]
-        opt_costs  = r['opt_costs'][sidx]
-        weights = np.ones_like(init_costs)
-        weights = weights / np.sum(weights)
-        cum_w_init = np.cumsum(init_costs * weights)
-        cum_w_opt  = np.cumsum(opt_costs  * weights)
-        ax.plot(xi, cum_w_init, c=C_I, label=f'Početno ({cum_w_init[-1]:.2f})')
-        ax.plot(xi, cum_w_opt,  c=C_O, label=f'Optim. ({cum_w_opt[-1]:.2f})')
-        ax.fill_between(xi, cum_w_opt, cum_w_init, alpha=0.3, color=C_O)
-        ax.set_xlabel('Artikli (po potražnji)')
-        ax.set_ylabel('Weighted kumulativni cost')
+        df = r['df']
+        df_pos = r['df_positions']
+        opt = r['opt_assign']
+
+        izlaz = df['izlaz'].values
+        total_izlaz = izlaz.sum()
+        
+        # V nivoi prije i poslije
+        init_V = df['V'].values
+        opt_V = np.array([df_pos.iloc[opt[i]]['V'] for i in range(len(df))])
+
+        V_levels = sorted(df['V'].unique())
+        
+        init_share = [
+            izlaz[init_V == v].sum() / total_izlaz
+            for v in V_levels
+        ]
+        
+        opt_share = [
+            izlaz[opt_V == v].sum() / total_izlaz
+            for v in V_levels
+        ]
+        
+        fig, ax = plt.subplots(figsize=(8, 5))
+        ax.plot(V_levels, init_share, marker='o', label='Početno')
+        ax.plot(V_levels, opt_share, marker='o', label='Optimizirano')
+        
+        ax.set_xlabel("Vertikalni nivo (V)")
+        ax.set_ylabel("Udio pickova")
+        ax.set_title("Pick-weighted distribucija pickova po V nivoima")
         ax.legend()
         ax.grid(alpha=0.3)
+        
         plt.tight_layout()
         st.pyplot(fig)
         plt.close()
+
 
         
         st.markdown("---")
