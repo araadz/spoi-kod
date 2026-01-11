@@ -100,7 +100,7 @@ with tab1:
             # Validacija
             missing = [c for c in ['H', 'V', 'E', 'izlaz'] if c not in df.columns]
             if missing:
-                st.error(f"❌ Nedostaju kolone: {missing}")
+                st.error(f"Nedostaju kolone: {missing}")
                 st.stop()
             
             # Pripremi podatke
@@ -148,7 +148,6 @@ with tab1:
             progress.progress(100)
             status.text("Završeno!")
             
-            st.balloons()
             st.success(f"Poboljšanje: **+{results['improvement']:.2f}%**")
             st.info(" Idi na tabove **Rezultati** i **Grafici**")
             
@@ -267,22 +266,6 @@ with tab3:
         st.pyplot(fig)
         plt.close()
         
-        st.markdown("---")
-        
-        # 2. Utility
-        st.subheader(" Utility po Artiklima")
-        fig, ax = plt.subplots(figsize=(14, 5))
-        ax.plot(xi, r['init_utils'][sidx], c=C_I, label='Početno')
-        ax.plot(xi, r['opt_utils'][sidx], c=C_O, label='Optimizirano')
-        ax.fill_between(xi, r['init_utils'][sidx], r['opt_utils'][sidx],
-                       where=r['opt_utils'][sidx] > r['init_utils'][sidx], alpha=0.3, color=C_O)
-        ax.set_xlabel('Artikli (po potražnji)')
-        ax.set_ylabel('Utility')
-        ax.legend()
-        ax.grid(alpha=0.3)
-        plt.tight_layout()
-        st.pyplot(fig)
-        plt.close()
         
         st.markdown("---")
         
