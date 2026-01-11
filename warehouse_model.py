@@ -2,8 +2,6 @@
 ================================================================================
 WAREHOUSE OPTIMIZATION MODEL
 ================================================================================
-Modul sa svim funkcijama za optimizaciju skladišta.
-Koristi ga Streamlit aplikacija.
 
 Formule:
 - Cost: C = α·H + β·max(0, V-2) + γ·(4-E)
@@ -21,9 +19,9 @@ DEFAULT_PARAMS = {
     'COST_A': 2.0,       # α - horizontalna udaljenost
     'COST_B': 5.0,       # β - vertikalna penalizacija
     'COST_C': 2.0,       # γ - dubina
-    'TAU': 8.0,          # τ - temperatura
+    'TAU': 8.0,          # τ - faktor razlike pozicija
     'DEMAND_MULTIPLIER': 15,  # λ - multiplikator potražnje
-    'N_PICKS': 500       # broj pickova za simulaciju
+    'N_PICKS': 1000       # broj pickova za simulaciju
 }
 
 # FUNKCIJE TROŠKA I KVALITETE
@@ -149,7 +147,7 @@ def simulate_picks(assignment, df, df_positions, params=None):
 
 def solve_ilp(U, df, df_positions):
     """
-    Rješava ILP problem i vraća optimalni assignment
+    Rješava ILP problem i vraća optimalni raspored
     
     max Σ U[i,j] · x[i,j]
     s.t. Σj x[i,j] = 1  ∀i
@@ -216,7 +214,7 @@ def optimize(df, params=None):
     if params is None:
         params = DEFAULT_PARAMS
     
-    # Pripremi podatke
+    # Priprema podataka
     df = prepare_data(df)
     df_positions = df[['H', 'V', 'E']].copy().reset_index(drop=True)
     n = len(df)
@@ -225,16 +223,16 @@ def optimize(df, params=None):
     init_assign = {i: i for i in range(n)}
     init_utils, init_costs, init_sim, init_wH, init_wV = simulate_picks(init_assign, df, df_positions, params)
     
-    # Generiraj utility matricu
+    # Generisanje utility matrice
     U = generate_utility_matrix(df, df_positions, params)
     
-    # Riješi ILP
+    # Riješavanje ILP
     opt_assign, status = solve_ilp(U, df, df_positions)
     
     # Metrike za optimalno rješenje
     opt_utils, opt_costs, opt_sim, opt_wH, opt_wV = simulate_picks(opt_assign, df, df_positions, params)
     
-    # Izračunaj poboljšanja
+    # Proračun poboljšanja
     improvement = (opt_utils.sum() - init_utils.sum()) / init_utils.sum() * 100
     cost_reduction = (init_sim - opt_sim) / init_sim * 100
     h_reduction = (init_wH - opt_wH) / init_wH * 100
@@ -288,7 +286,7 @@ def create_output_dataframe(results):
     df['utility'] = results['opt_utils']
     df['position_cost'] = results['opt_costs']
     
-    # Ukloni pomoćne kolone
+    
     if 'izlaz_norm' in df.columns:
         df = df.drop(columns=['izlaz_norm'])
     
