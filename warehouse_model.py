@@ -15,9 +15,8 @@ Formule:
 import numpy as np
 import pandas as pd
 
-# ============================================================
 # DEFAULT PARAMETRI
-# ============================================================
+
 DEFAULT_PARAMS = {
     'COST_A': 2.0,       # α - horizontalna udaljenost
     'COST_B': 5.0,       # β - vertikalna penalizacija
@@ -27,10 +26,8 @@ DEFAULT_PARAMS = {
     'N_PICKS': 500       # broj pickova za simulaciju
 }
 
-
-# ============================================================
 # FUNKCIJE TROŠKA I KVALITETE
-# ============================================================
+
 def calculate_cost(H, V, E, params=None):
     """
     Funkcija troška pozicije
@@ -63,14 +60,10 @@ def calculate_utility(izlaz_norm, H, V, E, params=None):
     demand_weight = 1.0 + izlaz_norm * params['DEMAND_MULTIPLIER']
     return quality * demand_weight
 
-
-# ============================================================
 # PRIPREMA PODATAKA
-# ============================================================
+
 def prepare_data(df):
-    """
-    Priprema DataFrame za optimizaciju
-    """
+    
     # Čišćenje
     df = df.dropna(subset=['H', 'V', 'E', 'izlaz']).reset_index(drop=True)
     
@@ -85,10 +78,8 @@ def prepare_data(df):
     
     return df
 
-
-# ============================================================
 # UTILITY MATRICA
-# ============================================================
+
 def generate_utility_matrix(df, df_positions, params=None):
     """
     Generira n×n utility matricu
@@ -109,10 +100,8 @@ def generate_utility_matrix(df, df_positions, params=None):
     
     return U
 
-
-# ============================================================
 # SIMULACIJA
-# ============================================================
+
 def simulate_picks(assignment, df, df_positions, params=None):
     """
     Simulira pickove i vraća metrike
@@ -156,9 +145,8 @@ def simulate_picks(assignment, df, df_positions, params=None):
     return utils, costs, sim_cost, wH, wV
 
 
-# ============================================================
 # ILP SOLVER
-# ============================================================
+
 def solve_ilp(U, df, df_positions):
     """
     Rješava ILP problem i vraća optimalni assignment
@@ -172,7 +160,7 @@ def solve_ilp(U, df, df_positions):
     
     n = len(df)
     
-    # Kreiraj problem
+    # Kreiranje problema
     prob = pulp.LpProblem("Warehouse", pulp.LpMaximize)
     
     # Binarne varijable
@@ -199,7 +187,7 @@ def solve_ilp(U, df, df_positions):
     # Riješi
     prob.solve(pulp.PULP_CBC_CMD(msg=False, timeLimit=120))
     
-    # Ekstrahiraj assignment
+    # Ekstraktovanje assignmenta
     assignment = {}
     for i in range(n):
         for j in range(n):
@@ -212,7 +200,6 @@ def solve_ilp(U, df, df_positions):
     return assignment, status
 
 
-# ============================================================
 # GLAVNA FUNKCIJA OPTIMIZACIJE
 # ============================================================
 def optimize(df, params=None):
@@ -283,9 +270,9 @@ def optimize(df, params=None):
     }
 
 
-# ============================================================
+
 # EXPORT REZULTATA
-# ============================================================
+
 def create_output_dataframe(results):
     """
     Kreira output DataFrame sa novim pozicijama
